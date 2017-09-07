@@ -10,4 +10,6 @@ reg price
 
 return list
 
+** Now trying the reverse.
+
 * Thanks for playing!
