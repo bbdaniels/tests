@@ -1,26 +1,18 @@
 *! version 1.0
 
-
-*****
-* Adapted from https://github.com/coderigo/stata-git
-*****
-
 version 12.0
 capture program drop wb_git_install
 program define wb_git_install
-syntax anything
+syntax anything // Needs the name of the command only.
 
-    /*
-    OS-dependent vars
-    */
-    local os         = "`c(os)'"
-    local adoPlusDir = "`c(sysdir_personal)'"
-    if("`os'" != "Windows"){
-        local adoPlusDir = subinstr("`adoPlusDir'","~","/Users/`c(username)'",.)
-    }
-    local adoDir    = trim(subinstr("`adoPlusDir'","ado/personal/","",.))
+  local adoPlusDir = "`c(sysdir_personal)'"
 
+  local os = "`c(os)'"
+  if("`os'" != "Windows"){
+      local adoPlusDir = subinstr("`adoPlusDir'","~","/Users/`c(username)'",.)
+  }
 
+  local adoDir      = trim(subinstr("`adoPlusDir'","ado/personal/","",.))
 	local firstLetter = lower(substr("`anything'",1,1))
 
     qui cap mkdir "`adoPlusDir'/`firstLetter'/"
@@ -38,6 +30,6 @@ syntax anything
 
 end
 
-wb_git_install stata_git
+* Demo usage: wb_git_install stata_git
 
 *
