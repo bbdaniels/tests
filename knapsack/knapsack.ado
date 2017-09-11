@@ -1,15 +1,25 @@
-// Returns the 0/1 knapsack problem solution values given a weight and value variable and a weight budget.
+// Returns the 0/1 knapsack problem solution values given a price and value variable and a price budget.
 
 version 12.0
 
 cap prog drop knapsack
 prog def knapsack , rclass
 
-syntax anything , Weight(varname) Value(varname)
+syntax ///
+  anything(name=budget id="budget constraint") ///
+  [if] [in], ///
+  Price(varname) Value(varname) ///
+  [GENerate(string asis)]
 
-* Setup the matrix
+* Setup in Stata
 
-  set matsize `anything'
+marksample touse
+
+  if("`generate'" != "") {
+    gen `generate' = .
+  }
+
+  set matsize `budget'
 
   qui count
     local obs = `r(N)'
@@ -17,55 +27,81 @@ syntax anything , Weight(varname) Value(varname)
 
   local theLabel : var label `value'
 
-* Loop
+* Mata setup
 
 mata: mata clear
+m {
 
-  m {
-
-    st_view(v=0,.,"`value'")
+    st_view(v=0,.,"`value'","`touse'")
 		v = 0 \ v
-  	st_view(w=0,.,"`weight'")
+  	st_view(w=0,.,"`price'","`touse'")
 		w = 0 \ w
 
-    theSolutions = J(`rows',`anything',0)
+* Loop over budget * items space to find solutions
 
-    for(i=2;i<=`rows';i++) {
-      for (j=1;j<=`anything';j++) {
+  theSolutions = J(`rows',`budget',0)
 
-
-        if(w[i] > j) {
-          theSolutions[i,j] = theSolutions[i-1,j]
-        }
-        else {
-		  opts = theSolutions[i-1, j], theSolutions[i-1, j-w[i]+1] + v[i]
-          theSolutions[i, j] = max(opts)
-        }
-
+  for(i=2;i<=`rows';i++) {
+    for (j=1;j<=`budget';j++) {
+      if(w[i] > j) {
+        theSolutions[i,j] = theSolutions[i-1,j]
+      }
+      else {
+	      opts = theSolutions[i-1, j], theSolutions[i-1, j-w[i]+1] + v[i]
+        theSolutions[i, j] = max(opts)
       }
     }
-
-    sol = theSolutions[`rows',`anything']
-    st_matrix("theSolution",sol)
-
   }
 
-* Return the solution
+* Get list of chosen items
 
-  local sol = el(theSolution,1,1)
+  isChosen = J(`rows',1,0)
+  theColumn = `budget'
+  for(i=`rows';i>1;i--) {
+    if(theSolutions[i,theColumn]>theSolutions[i-1,theColumn]) {
+      isChosen[i]=1
+      theColumn = theColumn - w[i] + 1
+      }
+  }
 
-  di in red "Maximum Total `theLabel' = `sol'"
+* Pass back to Stata
 
-  return scalar max = `sol'
+  isChosen = isChosen[|2\.|]
+
+  if("`generate'" != "") {
+    st_store(.,"`generate'",isChosen)
+  }
+
+  theSolution = theSolutions[`rows',`budget']
+  st_matrix("theSolution",theSolution)
+
+* End Mata
+
+  } // End Mata
+
+* Print the solution in Stata and save to r()
+
+  local theSolution = el(theSolution,1,1)
+  return scalar max = `theSolution'
+  di in red "Maximum Total `theLabel' = `theSolution'"
+
+* Finish up
+
+  cap mat drop theSolution
 
 end
+
+*********** Demo *********
 
 sysuse auto, clear
 
 set trace off
 set tracedepth 2
-knapsack 500 , w(mpg) v(price)
+knapsack 500 , p(mpg) v(price) gen(inset)
 
 di "`r(max)'"
+table inset , c(sum price)
+
+
 
 * Have a lovely day!

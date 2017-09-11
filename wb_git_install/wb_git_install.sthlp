@@ -1,5 +1,5 @@
 {smcl}
-{* Jul 8th 2015}
+{* Sep 10th 2017}
 {hline}
 Help for {hi:wb_git_install}
 {hline}
