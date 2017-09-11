@@ -12,7 +12,7 @@ If {opt gen:erate()} is specified, {it:newvarname} is created, containing 1 if t
 
 {title:Syntax}
 
-{p}{cmd:knapsack} {it:total_space} , {opt p:rice(varname)} {opt v:alue(varname)} {opt gen:erate(newvarname)}
+{p}{cmd:knapsack} {it:budget} , {opt p:rice(varname)} {opt v:alue(varname)} {opt gen:erate(newvarname)}
 
 {title:Author}
 
