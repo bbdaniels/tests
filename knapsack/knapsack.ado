@@ -62,7 +62,7 @@ m {
   for(i=`rows';i>1;i--) {
     if(theSolutions[i,theColumn]>theSolutions[i-1,theColumn]) {
       isChosen[i]=1
-      theColumn = theColumn - w[i] + 1
+      theColumn = theColumn - w[i]
       }
   }
 
