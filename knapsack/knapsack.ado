@@ -19,10 +19,9 @@ marksample touse
     gen `generate' = .
   }
 
-  local cols = `budget' + 1
-    set matsize `cols'
+  set matsize `budget'
 
-  qui count if `touse'
+  qui count
     local obs = `r(N)'
     local rows = `obs' + 1
 
@@ -40,17 +39,16 @@ m {
 
 * Loop over budget * items space to find solutions
 
-
-  theSolutions = J(`rows',`cols',0)
+  theSolutions = J(`rows',`budget',0)
 
   for(i=2;i<=`rows';i++) {
     for (j=1;j<=`budget';j++) {
       if(w[i] > j) {
-        theSolutions[i,j+1] = theSolutions[i-1,j+1]
+        theSolutions[i,j] = theSolutions[i-1,j]
       }
       else {
-	      opts = theSolutions[i-1, j+1], theSolutions[i-1, j-w[i]+1] + v[i]
-        theSolutions[i, j+1] = max(opts)
+	      opts = theSolutions[i-1, j], theSolutions[i-1, j-w[i]+1] + v[i]
+        theSolutions[i, j] = max(opts)
       }
     }
   }
@@ -58,7 +56,7 @@ m {
 * Get list of chosen items
 
   isChosen = J(`rows',1,0)
-  theColumn = `cols'
+  theColumn = `budget'
   for(i=`rows';i>1;i--) {
     if(theSolutions[i,theColumn]>theSolutions[i-1,theColumn]) {
       isChosen[i]=1
@@ -74,7 +72,7 @@ m {
     st_store(.,"`generate'",isChosen)
   }
 
-  theSolution = theSolutions[`rows',`cols']
+  theSolution = theSolutions[`rows',`budget']
   st_matrix("theSolution",theSolution)
 
 * End Mata
@@ -96,17 +94,13 @@ end
 *********** Demo *********
 
 sysuse auto, clear
-keep mpg price
-rename (mpg price)(cost value)
 
 set trace off
 set tracedepth 2
-
-* keep in 1/20
-knapsack 500, p(cost) v(value) gen(chosen)
+knapsack 500 , p(mpg) v(price) gen(inset)
 
 di "`r(max)'"
-table chosen , c(sum cost sum value)
+table inset , c(sum price)
 
 
 
