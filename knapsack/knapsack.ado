@@ -85,7 +85,6 @@ m {
 
   local theSolution = el(theSolution,1,1)
   return scalar max = `theSolution'
-  di in red "Maximum Total `theLabel' = `theSolution'"
 
 * Finish up
 
