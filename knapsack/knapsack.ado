@@ -20,7 +20,7 @@ marksample touse
   }
 
   local cols = `budget' + 1
-    set matsize `cols'
+    set matsize 10000
 
   qui count if `touse'
     local obs = `r(N)'
