@@ -1,5 +1,5 @@
 [Sometimes (increasingly often times), estimating only the ITT is not enough in a RCT](http://blogs.worldbank.org/impactevaluations/sometimes-increasingly-often-times-estimating-only-itt-not-enough-rct )
-
+  
 [Weekly links July 28: overpaid teachers? Should we use p=0.005? beyond mean impacts, facilitating investment in Ethiopia, and more!](http://blogs.worldbank.org/impactevaluations/weekly-links-july-28-overpaid-teachers-should-we-use-p0005-beyond-mean-impacts-facilitating )
 
 [Biased women in the I(C)T crowd](http://blogs.worldbank.org/impactevaluations/biased-women-ict-crowd )
