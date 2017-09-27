@@ -74,6 +74,15 @@
 
 	 drop in 1
 
+   gen order = _n
+
+   expand 2 , gen(false)
+
+   sort order false
+
+   replace v1 = " " if false == 1
+   drop false order
+
 	 export delimited using ///
       "/Users/bbdaniels/GitHub/tests/scrape-ieBlog/ieBlog.csv" , replace
 
