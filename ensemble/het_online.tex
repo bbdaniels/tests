@@ -1,0 +1,329 @@
+\documentclass[12pt,letterpaper]{article}
+% === graphic packages ===
+\usepackage{graphicx,textcomp}
+% === bibliography package ===
+\usepackage{natbib}
+% === margin and formatting ===
+\usepackage{setspace}
+\usepackage[compact]{titlesec}
+\usepackage{fullpage}
+\usepackage{color}
+% === math packages ===
+\usepackage[reqno]{amsmath}
+%\usepackage[pdftex]{hyperref}
+\usepackage{amsthm}
+\usepackage{amssymb,enumerate}
+\usepackage[all]{xy}
+\usepackage{lscape}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\newtheorem{com}{Comment}
+\newtheorem{lem} {Lemma}
+\newtheorem{prop}{Proposition}
+\newtheorem{thm}{Theorem}
+\newtheorem{defn}{Definition}
+\newtheorem{cor}{Corollary}
+\newtheorem{obs}{Observation}
+ \numberwithin{equation}{section}
+%\usepackage{times}
+ \numberwithin{equation}{section}
+% === dcolumn package ===
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{.}{-1}}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+% === additional packages ===
+\usepackage{url}
+\newcommand{\Sref}[1]{Section~\ref{#1}}
+%
+
+\title{Online Appendix for: Estimating Heterogeneous Treatment Effects and the Effects of Heterogeneous Treatments with Ensemble Methods}
+
+ \author{Justin Grimmer \thanks{Associate Professor, Department of
+     Political Science, Stanford University; Encina Hall West 616 Serra
+     St., Stanford, CA, 94305}
+ \and
+ Solomon Messing \thanks{Director, Data Labs, Pew Research Center 1615 L Street NW, Washington, DC}
+ \and 
+ Sean J. Westwood \thanks{Assistant Professor, Department of Government, Dartmouth College}    
+     }
+    
+\bibliographystyle{apsr}
+
+\begin{document}
+\maketitle
+
+
+
+
+\section{Constructing the Ensemble via Ensemble Bayesian Model Averaging}\label{s:EBMA}
+A closely related ensemble creation procedure is Ensemble Bayesian Model Averaging (EBMA) \citep{Raftery05, MonHolWar12}.  EBMA draws on an analogy to Bayesian Model Averaging (BMA) to generate a weighted ensemble to generate predictions.  To do this, EBMA utilizes a predictive posterior that is a mixture of component predictions.  Given our focus on dichotomous dependent variables, we note that estimates of $E[Y(k)|\boldsymbol{x} ]$, $g(k, \boldsymbol{x})$ are also estimates of $P(Y(k) = 1| \boldsymbol{x})$.  In this case, then, we can write out predictive posterior as, 
+\begin{eqnarray}
+p(Y(k) = 1| \boldsymbol{x}, \boldsymbol{Y}) & = &  \sum_{m=1}^{M} \int w_{m} P(Y(k) = 1 | \boldsymbol{x}) p(w_{m} | \boldsymbol{x}, \boldsymbol{Y}) dw_{m} \nonumber \\
+		%	& = & \sum_{m=1}^{M} \int w_{m} E[Y(k) | \boldsymbol{x}] p(w_{m} |g_{1}, g_{2}, \hdots, g_{m}, \boldsymbol{x}, \boldsymbol{Y}) dw_{m} \nonumber \\
+& = & \sum_{m=1}^{M} \int w_{m} g_{m} (k, \boldsymbol{x} ) p(w_{m} |  \boldsymbol{x}, \boldsymbol{Y}) d w_{m} \nonumber 
+\end{eqnarray}
+
+And if we assume that weights are point masses at the maximum a posterior (MAP) estimate---as is commonly done in the literature \citep{Raftery05, MonHolWar12}---then this reduces to  $p(Y(k) = 1| g_{1}, g_{2}, \hdots, g_{m}, \boldsymbol{x})  = \sum_{m=1}^{M} w_{m} g_{m}(k, \boldsymbol{x})$.   Our estimate of the CATE for treatment conditions $k$ and $k^{'}$ with covariates $\boldsymbol{x}$ is 
+\begin{eqnarray}
+\widehat{\phi}(k, k^{'}, \boldsymbol{x} ) & = & \sum_{m=1}^{M} w_{m} g_{m}(k, \boldsymbol{x}) - \sum_{m=1}^{M} w_{m} g_{m}(k^{'}, \boldsymbol{x}).   
+\end{eqnarray}
+
+\noindent This is, of course, equivalent to Equation \ref{e:ECATE}, or the formula used to compute our ensemble for estimating heterogeneous treatment effects previously proposed.    
+
+Super learning and EBMA share a methodology focused on accurate combinations of component methods.  The two methods differ (as presented here) in how the weights are estimated.  In Appendix \ref{a:EBMA} we provide three ways to estimate the weights for EBMA, including the maximum a posteriori (MAP) methods used in the prior literature \citep{Raftery05, MonHolWar12} and two ways to obtain the posterior distribution on the weights---Gibbs sampling and a variational approximation \citep{Jordan99}.  While distinct, the methods presented in Appendix \ref{a:EBMA} share the same intuition as the regression in Step 2 of the super learner algorithm: the out of sample predictions are used to identify the methods that provide accurate out of sample predictions of individual values.    
+
+% \subsection{Potential Objections to Ensemble Based Methods}
+% Ensemble based methods have demonstrated accurate performance across diverse tasks.  Yet, there are potential objections to using ensemble based methods for the estimation of heterogeneous effects. First, we have not provided uncertainty estimates for the quantities of interest.  Across all possible cases we cannot guarantee that estimates of the uncertainty estimates are available.  This is because it is unclear how to characterize the uncertainty in estimates from some component methods---such as LASSO \citep{Hastie01} or related methods \citep{ImaRat12}.  But for other methods uncertainty estimates are available and are one of the primary advantages of methods like KRLS \citep{HaiHaz12} and BART \citep{GreKer12}. When all the component methods have well defined uncertainty estimates it is easy to obtain to uncertainty estimates for the ensemble methods.  We can obtain this either through a parametric bootstrap \citep{KinTomWit00} or we can use simple formula to obtain a closed form for the variance of the ensemble (see Appendix \ref{a:variance}).  
+
+% A second potential objection to the use of ensembles is that a cross validation procedure could provide conservative estimates of heterogeneous effects.  This could occur because we subset our data to generate out of sample predictions.  And analyzing only a subset of data necessarily reduces the statistical power to detect heterogeneous effects. But this objection has limited application to our ensembles: the lack of statistical power only matters if it causes methods that perform poorly in the full sample to receive too much weight in the second stage.  This is because our final set of estimates for heterogeneous effects are based on models that use the entire sample, ensuring each of the methods have full power to detect the underlying heterogeneous effects.  
+% % Potential nit-picky reviewer objection(?): Suppose shrinkage models perform better in the CV subset but not in the full ensemble, this could lead to a different kind of type II error, no?  I.e., suppose the ensemble puts 100% weight on the LASSO in CV, which shrinks the estimate of some actual effect to zero.  Seems like a bit of a stretch, but raises the question of whether we need to address this potential issue.  
+
+\subsection{Estimating Weights for EBMA}\label{a:EBMA}
+In this appendix we describe the posterior distribution for EBMA and provide three ways to estimate the weights.  Following prior literature \citep{Raftery05, MonHolWar12} we assume that our predictive posterior is a mixture of the component methods.  We will suppose that the weights are drawn from a uniform distribution (or a Dirichlet($\boldsymbol{1})$).  We will suppose that each observation $i$ is drawn from one of the $M$ component models.  Denote the model with a $M \times 1$ indicator vector $\boldsymbol{\tau}_{i}$ where $\tau_{im} = 1$ when observation $i$ is drawn from model $m$ and all other entries are zero.  We will suppose that $\boldsymbol{\tau}_{i} \sim \text{Multinomial}(\boldsymbol{w})$.  Finally, given a realization of $\boldsymbol{\tau}_{i}$ with $\tau_{im} = 1$ we will suppose that the out of sample prediction for observation $i$ assigned to treatment $k$  $Y(k)_{i}$ is drawn from a Bernoulli distribution, with chance of success $\pi = g_{im} (k, \boldsymbol{x})$ or $\widehat{Y}_{im}(k)$ in the notation above.  
+
+Together this implies the following  model 
+\begin{eqnarray}
+\boldsymbol{w} & \sim  & \text{Dirichlet}(\boldsymbol{1} ) \nonumber \\
+\boldsymbol{\tau} & \sim & \text{Multinomial}(\boldsymbol{w} ) \nonumber \\
+Y_{i}(k) | \tau_{im} = 1, \boldsymbol{x}  & \sim  & \text{Bernoulli}\left( \widehat{Y}_{im}(k) \right) \nonumber 
+\end{eqnarray}
+
+and the following posterior distribution for the weights, 
+\begin{eqnarray}
+p(\boldsymbol{w}, \boldsymbol{\tau} | \widehat{\boldsymbol{Y}}, \boldsymbol{x}, \boldsymbol{Y} ) & \propto & \prod_{i=1}^{N} \prod_{m=1}^{M} \left[w_{m} \times \left(\widehat{Y}_{im}(k)^{Y_{i} (k)} \times (1 - \widehat{Y}_{im}(k))^{1- Y_{i}(k) } \right) \right]^{\tau_{im}} \nonumber 
+\end{eqnarray}
+
+We provide three ways to estimate weights with this posterior: an Expectation-Maximization (EM) algorithm, a Gibbs sampler, and a variational approximation.  Each derivation is straightforward and available in previous work on estimation in mixture models.  
+
+\subsection{EM Algorithm}
+The EM algorithm proceeds in two steps.  To begin, initialize estimates for the weights $w_{m}^{t}$ where $t$ will index the iteration.  Then, we compute the E-step.  For each observation $i$ and each model $m$ compute $\widehat{\tau}_{im}$ which is equal to 
+\begin{eqnarray} 
+\widehat{\tau}_{im}^{t} & = & \frac{w_{m}^{t} \left[\widehat{Y}_{im}(k)^{Y_{i} (k)} \times (1 - \widehat{Y}_{im}(k))^{1- Y_{i}(k) }\right] } {\sum_{l = 1}^{M} w_{l}^{t} \left[\widehat{Y}_{im}(k)^{Y_{i} (k)} \times (1 - \widehat{Y}_{im}(k))^{1- Y_{i}(k) }\right]  } \nonumber 
+\end{eqnarray}
+
+Computing the $M$ step is straightforward, with the new estimates of the weight for model $m$, $w_{m}^{t + 1}$ given by 
+\begin{eqnarray}
+w_{m}^{t + 1} & \propto & 1 +  \sum_{i=1}^{N} \widehat{\tau}_{im}^{t} \nonumber
+\end{eqnarray}
+
+Estimation of the EM-algorithm proceeds until the change in the parameters (or other summary of changes) drops below a predetermined threshold.  The EM estimates, 
+
+\subsection{Gibbs Sampler}
+A Gibbs sampler provides estimates of the posterior. This facilitates estimation of the uncertainty in the weights when calcuating ATEs and CATEs.  Like the EM algorithm, the steps of the Gibbs sampler are well established.  Again, initialize weights $w_{m}^{t}$ where $t$ tracks the iteration of the sampler.  We then sample in two stages.  First, we draw $\widehat{\boldsymbol{\tau}}_{i}^{t}$, 
+\begin{eqnarray}
+\widehat{\boldsymbol{\tau}}_{i}^{t} & \sim & \text{Multinomial}(1, \boldsymbol{\theta}_{i}) \nonumber 
+\end{eqnarray}
+where $\boldsymbol{\theta}_{i}  = (\theta_{i1}, \theta_{i2}, \hdots, \theta_{iM} )$ and
+\begin{eqnarray}
+\theta_{im}^{t}  & = & \frac{w_{m}^{t} \left[\widehat{Y}_{im}(k)^{Y_{i} (k)} \times (1 - \widehat{Y}_{im}(k))^{1- Y_{i}(k) }\right] } {\sum_{l = 1}^{M} w_{l}^{t} \left[\widehat{Y}_{im}(k)^{Y_{i} (k)} \times (1 - \widehat{Y}_{im}(k))^{1- Y_{i}(k) }\right]  } \nonumber 
+\end{eqnarray}
+
+Conditional on the drawn indicator vectors, $\widehat{\boldsymbol{\tau}}_{i}$, we draw the weights, $\boldsymbol{w}^{t}$, 
+\begin{eqnarray}
+\boldsymbol{w}^{t + 1} & \sim & \text{Dirichlet}(\boldsymbol{\eta}) \nonumber 
+\end{eqnarray}
+where $\boldsymbol{\eta}  = (\eta_{1}, \eta_{2}, \hdots, \eta_{M})$ and 
+\begin{eqnarray}
+\eta_{m} & = & 1 + \sum_{i=1}^{N} \widehat{\tau}_{im}^{t}. \nonumber
+\end{eqnarray}
+
+After a burn in period and convergence is diagnosed, the sampler is run to approximate the posterior distribution of weights. These weights can then be used to estimate the ATEs and CATEs.  
+
+
+\subsection{Variational Approximation}
+A third method for estimating the posterior on the weights is with a variational approximation, a deterministic method for approximating the full posterior.  Variational approximations make a simplifying assumption about the posterior and then finds the member of this simpler, though still general, functional family that provides the closest approximation to the full posterior, as measured by the Kullback-Leibler divergence.  We will approximate the posterior distribution for $\boldsymbol{w}$ and $\boldsymbol{\tau}$ with the simpler functional form $q(\boldsymbol{w}, \boldsymbol{t} ) = q(\boldsymbol{w}) q(\boldsymbol{\tau})$.  By the independence assumptions in our data, this implies that we can write the approximating function as $q(\boldsymbol{w})q(\boldsymbol{\tau}) = q(\boldsymbol{w})\prod_{i=1}^{N} q(\boldsymbol{\tau}_{i}) $. 
+
+Standard arguments for variational approximations of exponential family distributions (see \cite{Jordan99, Bishop06}) leads to the form of the posterior approximations and the update steps.  A standard derivation shows that     $q(\boldsymbol{\tau}_{i})$ is a Multinomial distribution, with parameter $\boldsymbol{\theta}_{i}$ where 
+\begin{eqnarray}
+\theta_{im} &  \propto  &   \exp\left( \text{E}[\log w_{m} ] +   \log \left[\widehat{Y}_{im}(k)^{Y_{i} (k)} \times (1 - \widehat{Y}_{im}(k))^{1- Y_{i}(k) }\right] \right) \nonumber 
+\end{eqnarray}
+
+where $\text{E}[\log w_{m} ]$ is taken over the approximating distribution and dependent on $q(\boldsymbol{w})$.  A second standard calculation shows that $q(\boldsymbol{w})$ is a Dirichlet($\boldsymbol{\eta})$ distribution with $\eta_{m}$ equal to , 
+\begin{eqnarray}
+\eta_{m}  = 1 + \sum_{i=1}^{N} \theta_{im} \nonumber 
+\end{eqnarray}
+
+This implies that E$[\log w_{m} ] = \psi(\eta_{m} )  - \psi\left(\sum_{l=1}^{M} \eta_{l}  \right) $ where $\psi(\cdot)$ is the digamma function.  
+After initializing values of $\boldsymbol{\eta}^{t}$ the formulas are applied iteratively to update the parameters until the change in the parameters (or change in a lower bound) drops below a sufficient level for convergence.  The approximating posterior distribution on the weights with the converged parameter estimates can then be used to reflect posterior uncertainty in the weights. 
+
+
+\section{Details on Monte Carlo Simulations} \label{a:Monte}
+
+We specify four data generating processes for our Monte Carlo simulations. Each of the Monte Carlo simulations build off the simulations in \cite{ImaRat12}.  
+
+\paragraph{Monte Carlo 1} For this simulation we have a sparse data generating process with discrete covariates.  Specifically, we suppose that for all 2500 observations that, 
+\begin{eqnarray}
+Y_{i} & \sim & \text{Bernoulli} (\pi_{i} ) \nonumber \\
+\pi_{i} & = & \Phi\left(\boldsymbol{\beta} \boldsymbol{T}_{i}  + \gamma \boldsymbol{X}_{i} + \sum_{k=1}^{46}\sum_{j=1}^{2}\eta_{jk} X_{ij}\times T_{ik} \right)
+\label{e:generation}
+\end{eqnarray}
+where:
+\begin{itemize}
+\item[-] $\Phi$ is the standard Normal CDF
+\item[-] $\boldsymbol{T}_{i}$ is a 46-element treatment indicator vector.  Suppose that $\boldsymbol{p}$ is a 47 element long vector  equal to $(\frac{1}{47}, \frac{1}{47}, \hdots, \frac{1}{47})$.  Then we draw $T_{i} \sim \text{Multinomial}(\boldsymbol{p})$ and if all elements of $\boldsymbol{T}_{i}$ are equal to zero then this corresponds with a control condition.  
+\item[-] $\boldsymbol{\beta} = (\beta_{1}, \hdots, \beta_{46})$ are coefficients for $T_{i}$. We set $\beta_1 = 2$, $\beta_{2} = 1, \beta_{3} = 0.5, \beta_{4}  = -1, \beta_{5} -2$.  For $k$ from 6 to 46 we draw $\beta_{k} \sim \text{Uniform}(-0.07, 0.07)$.  
+\item[-] $\boldsymbol{X}_{i}$ is a 2-element long vector of covariates, with $X_{i1} \sim \text{Bernoulli}(0.4)$ and $X_{i2} \sim \text{Bernoulli}(0.6)$ .  
+\item[-] $\boldsymbol{\eta}$ is a vector of interaction terms for each treatment and covariate.  We suppose that the first five treatments have systematic interactions with the covariates. The remaining eta values are assumed to be drawn from a $\text{Uniform}(-0.1, 0.1)$ distribution.  
+\end{itemize}
+
+We then assess the RMSE by generating all possible treatment and covariate combinations and comparing to the actual estimated effects.  
+
+
+\paragraph{Monte Carlo 2} For this simulation we maintain the same basic structure as in Monte Carlo 1, but change the discrete covariates to continuous covariates.  Specifically, we suppose that in Equation \ref{e:generation} that for each $i$ we generate $a_{i} \sim \text{Normal}(0,1)$, $b_{i} \sim \text{Normal}(0,1)$, and $c_{i} \sim \text{Normal}(0,1)$.  We then compute, 
+\begin{itemize}
+\item[-] $X_{i1} = \sin(a_{i}) \times b_{i} + \cos(c_{i})*a_{i} $
+\item[-] $X_{i2}  = \exp\left(\frac{a_{i}}{10}\right)\times (b_{i}^2 + \sin(c_{i}) ) $
+\end{itemize}
+
+Because the continuous covariates don't allow us to exactly estimate the treatment effects for every possible valuable, we vary across a range of each variable to compare the actual and estimate treatment effects.
+
+\paragraph{Monte Carlo 3} Monte Carlo 3 provides a \emph{dense} data generating process, with many more treatments having a systematic and large effect---and many more having hetergeneous treatment effects.  We suppose again the basic structure 
+\begin{eqnarray}
+Y_{i} & \sim & \text{Bernoulli} (\pi_{i} ) \nonumber \\
+\pi_{i} & = & \Phi\left(\boldsymbol{\beta} \boldsymbol{T}_{i}  + \gamma \boldsymbol{X}_{i} + \sum_{k=1}^{46}\sum_{j=1}^{2}\eta_{jk} X_{ij}\times T_{ik} \right)
+\label{e:generation}
+\end{eqnarray}
+where:
+\begin{itemize}
+\item[-] $\Phi$ is the standard Normal CDF
+\item[-] $\boldsymbol{T}_{i}$ is a 46-element treatment indicator vector.  Suppose that $\boldsymbol{p}$ is a 47 element long vector  equal to $(\frac{1}{47}, \frac{1}{47}, \hdots, \frac{1}{47})$.  Then we draw $T_{i} \sim \text{Multinomial}(\boldsymbol{p})$ and if all elements of $\boldsymbol{T}_{i}$ are equal to zero then this corresponds with a control condition.  
+\item[-] But now we suppose that many more of the treatments have systematic effects.  Specifically we suppose for each $k$ $(k = 1, \hdots, 46)$ that we draw $n_{k} \sim \text{Bernoulli}(0.5)$.  And then we draw the coefficients, 
+
+\begin{equation}
+\beta_{k}   \sim    \begin{cases}  \text{Normal }(-1, 0.1) \text{  If } n_{k} = 1  \\ 
+													    \text{Normal }(1, 0.1) \text{  If } n_{k} = 0  \\
+\end{cases} \nonumber 
+\end{equation}
+
+\item[-] And we suppose that there are interactions between covariates and the treatments for all the covariate and treatment pairs.  We suppose each for each $j$ and $k$ we draw $n_{jk} \sim \text{Bernoulli}(0.5)$.  And then for each $\eta_{jk}$ we draw, 
+
+\begin{equation} 
+\eta_{ij}  \sim  \begin{cases} \text{Uniform}(-1, -0.5) \text{ If } n_{jk} = 1 \\
+													  \text{Uniform}(0.5, 1) \text{ If } n_{jk}  =  0 \\
+\end{cases}			\nonumber 										  
+\end{equation}													  
+
+\end{itemize}
+
+
+\paragraph{Monte Carlo 4} This Monte Carlo simulation generates the covariates as in Monte Carlo 2 and coefficients as in Monte Carlo 3.  
+
+
+
+\section{Details on Simulation Results}
+
+This section provides the results for the individual iterations of the monte carlo simulation.  The tables contain the root mean square errors for the estimating the heterogeneous treatment effect across the synthetic data sets.  
+
+
+\begin{table}[hbt]
+\caption{Monte Carlo Simulation 1}
+\begin{tabular}{cccccc}
+Methods & Iter 1& Iter 2 & Iter 3 & Iter 4 & Iter 5\\
+LASSO&0.04&0.05&0.04&0.04&0.05\\ 
+Elastic Net 0.5&0.04&0.05&0.05&0.05&0.05\\ 
+Elastic Net 0.25&0.07&0.08&0.07&0.07&0.07\\ 
+Find It&0.05&0.05&0.05&0.06&0.05\\ 
+Bayesian GLM&0.08&0.09&0.09&0.08&0.09\\ 
+BART&0.04&0.05&0.05&0.05&0.05\\ 
+Random Forest&0.23&0.23&0.25&0.23&0.23\\ 
+KRLS&0.06&0.07&0.08&0.07&0.07\\ 
+SVM-SMO&0.11&0.12&0.12&0.13&0.12\\ 
+Weighted Ensemble&0.04&0.05&0.04&0.05&0.05\\ 
+Naive Average&0.06&0.07&0.07&0.06&0.07\\ 
+\end{tabular}
+\end{table}
+
+
+\begin{table}[hbt]
+\caption{Monte Carlo Simulation 2}
+\begin{tabular}{cccccc}
+Methods & Iter 1& Iter 2 & Iter 3 & Iter 4 & Iter 5\\
+LASSO&0.14&0.15&0.12&0.26&0.15\\ 
+Elastic Net 0.5&0.13&0.15&0.13&0.26&0.15\\ 
+Elastic Net 0.25&0.17&0.17&0.19&0.24&0.18\\ 
+Find It&3.03&2.89&2.51&2.47&2.47\\ 
+Bayesian GLM&0.13&0.14&0.14&0.21&0.15\\ 
+BART&0.48&0.46&0.5&0.49&0.46\\ 
+Random Forest&0.33&0.26&0.3&0.3&0.36\\ 
+KRLS&0.45&0.42&0.38&0.44&0.38\\ 
+SVM-SMO&0.26&0.27&0.28&0.39&0.38\\ 
+Weighted Ensemble&0.13&0.13&0.13&0.21&0.15\\ 
+Naive Average&0.31&0.29&0.24&0.3&0.25\\ 
+\end{tabular}
+\end{table}
+
+
+
+
+\begin{table}[hbt]
+\caption{Monte Carlo Simulation 3}
+\begin{tabular}{cccccc}
+Methods & Iter 1& Iter 2 & Iter 3 & Iter 4 & Iter 5\\
+LASSO&0.09&0.14&0.17&0.1&0.12\\ 
+Elastic Net 0.5&0.08&0.14&0.16&0.08&0.11\\ 
+Elastic Net 0.25&0.07&0.1&0.1&0.08&0.1\\ 
+Find It&0.15&0.16&0.21&0.14&0.16\\ 
+Bayesian GLM&0.09&0.13&0.13&0.07&0.1\\ 
+BART&0.13&0.13&0.12&0.12&0.13\\ 
+Random Forest&0.26&0.31&0.27&0.25&0.31\\ 
+KRLS&0.07&0.13&0.14&0.08&0.09\\ 
+SVM-SMO&0.14&0.2&0.18&0.14&0.18\\ 
+Weighted Ensemble&0.07&0.11&0.11&0.08&0.1\\ 
+Naive Average&0.08&0.09&0.13&0.08&0.12\\ 
+\end{tabular}
+\end{table}
+
+
+\begin{table}[hbt]
+\caption{Monte Carlo Simulation 4}
+\begin{tabular}{cccccc}
+Methods & Iter 1& Iter 2 & Iter 3 & Iter 4 & Iter 5\\
+LASSO&0.2&0.12&0.14&0.13&0.21\\ 
+Elastic Net 0.5&0.16&0.12&0.14&0.13&0.17\\ 
+Elastic Net 0.25&0.14&0.15&0.15&0.14&0.22\\ 
+Find It&2.81&4&3.18&3.63&2.61\\ 
+Bayesian GLM&0.13&0.12&0.14&0.12&0.13\\ 
+BART&0.42&0.51&0.41&0.49&0.5\\ 
+Random Forest&0.26&0.28&0.27&0.29&0.34\\ 
+KRLS&0.41&0.44&0.41&0.42&0.43\\ 
+SVM-SMO&0.27&0.27&0.24&0.32&0.32\\ 
+Weighted Ensemble&0.12&0.12&0.13&0.12&0.14\\ 
+Naive Average&0.29&0.38&0.32&0.34&0.28\\ 
+\end{tabular}
+\end{table}
+
+\section{Details of Ensemble Creation} \label{a:ensemble}
+
+We apply seven methods to estimate the heterogeneous treatment effects. 
+\begin{itemize}
+\item[1)] LASSO:  We estimate the LASSO using the {\tt glmnet} \citep{FriHasTib10}.  We use cross validation to determine the penalty parameter, using mean square error, and the binomial family.  We predict values with the penalty parameter that minimizes the mean square error.  
+\item[2)] Elastic-Net $\alpha = 0.5$: We estimate the elastic net using the {\tt glmnet} \citep{FriHasTib10}.  We use cross validation to determine the penalty parameter, using mean square error, and the binomial family.  We predict values with the penalty parameter that minimizes the mean square error. 
+\item[3)] Elastic-Net $\alpha = 0.25$: We estimate the elastic net using the {\tt glmnet} \citep{FriHasTib10}.  We use cross validation to determine the penalty parameter, using mean square error, and the binomial family.  We predict values with the penalty parameter that minimizes the mean square error. 
+\item[4)] Bayesian GLM: We use the logit link in the binomial family in the {\tt arm} package \citep{Gelman07}
+\item[5)] Find It: we use the {\tt FindIt} package \citep{ImaRat12}.  We search for the lambda parameters and use the glmnet option.  
+\item[6)] KRLS: we use the {\tt KRLS} package, using a gaussian kernel with default settings for the $\sigma$ parameter.  
+\item[7)] SVM: we use the {\tt RWeka} and {\tt rJava} packages using the SMO command, with the polynomial kernels.  
+\item[8)] BART: we use the {\tt BayesTree} package and the {\tt bart} function to the BART models, where we have potential cut values chosen based on the empirical data distribution, with 500 draws for burnin and 1000 draws for posterior summary.  
+\end{itemize}
+
+
+% \section{Details on Experiment 1} \label{s:Exp1}
+% In this section we provide additional details on the theoretical reasons for each of the five components of our template.  \\
+
+
+% \paragraph{Type}: We vary the \emph{type} of expenditure directed to the district, allowing us to assess how differences in preferences about the kinds of expenditures affect the credit allocated legislators \citep{LazRei10}.  We include commonly announced types of expenditures---such as police grants, fire department grants, and roads.  We also include more controversial types of funding---such as planned parenthood and funds for the gun range, because they generate clear hypotheses about how the treatment response will vary with respondent characteristics.\\
+
+% \paragraph{Money}: We also vary the \emph{amount} of money secured, providing a second assessment of how constituents respond to the dollar amount of a project (rather than other features of the project) \citep{GriMesWes12}.\\
+  
+%  \paragraph{Stage}: Legislators often announce projects throughout the appropriations process.  To assess how constituents allocate credit at different stages, we vary the \emph{stage} in the appropriations process of the expenditure. 
+ 
+%  \paragraph{Collaboration}:  Legislators also often announce expenditures with other members of Congress \citep{Grimmer13} and there are diverse theories about how this partnership affects the credit legislators receive \citep{Shepsle09, Chen10}.  We vary who legislators \emph{announce with} to test how the partnership affects the credit legislators receive.  
+ 
+ 
+%  \paragraph{Partisanship} Finally we vary the \emph{partisanship} of the representative, because partisan cues may affect how constituents evaluate messages from legislators.  
+
+
+
+
+\bibliography{BibProsp}
+\end{document}
